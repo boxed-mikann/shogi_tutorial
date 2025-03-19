@@ -107,6 +107,55 @@ public class GameSceneDirector : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        GameObject tile=null;
+        UnitController unit=null;
+        if (Input.GetMouseButtonUp(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);//光線を飛ばす
+            //ユニットにも当たり判定があるのでヒットしたすべてのオブジェクト情報を取得
+            foreach(RaycastHit hit in Physics.RaycastAll(ray)){
+                UnitController hitunit = hit.transform.GetComponent<UnitController>();
+                //持ち駒ならユニット参照を直接取る
+                if(null != hitunit && FieldStatus.Captured == hitunit.FieldStatus){
+                    unit=hitunit;
+                }
+                //タイルなら
+                else if (tiles.ContainsValue(hit.transform.gameObject)){
+                    tile=hit.transform.gameObject;
+                    //タイルからユニットを探す
+                    foreach(var item in tiles){
+                        if(item.Value == tile){
+                            unit=units[item.Key.x,item.Key.y];
+                        }
+                    }
+                    break;
+                }
+            }
+        }        
+        //何も選択されていなければ処理しない
+        if(null == unit && null ==tile) return;
+        //ユニット処理
+        if(unit)//null != unitの意味
+        {
+            selectCursors(unit);
+        }
+    }
 
+    // 選択時
+    void selectCursors(UnitController unit=null,bool playerunit =true)
+    {
+        //選択していたユニットを非選択する
+        if(null != selectunit){
+            selectunit.Select(false);
+            selectunit=null;
+        }
+
+        //自分のユニットならそのユニットを選択する
+        if(playerunit){
+            unit.Select();
+            selectunit=unit;
+        }
+
+        //TODO 移動可能範囲の表示
     }
 }
