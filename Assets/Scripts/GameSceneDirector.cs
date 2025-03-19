@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -37,6 +38,13 @@ public class GameSceneDirector : MonoBehaviour
         {4,0,1,0,0,0,11,0,14}
     };
 
+    //フィールドデータ
+    Dictionary<Vector2Int,GameObject> tiles;
+    UnitController[,] units;
+
+    //現在選択中のユニット
+    UnitController selectunit;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -51,6 +59,10 @@ public class GameSceneDirector : MonoBehaviour
         boardWidth = boardSetting.GetLength(0);
         boardHeight = boardSetting.GetLength(1);
 
+        //フィールドの初期化
+        tiles = new Dictionary<Vector2Int, GameObject>();
+        units = new UnitController[boardWidth,boardHeight];
+
         // ボードのタイルを生成
         for (int i = 0; i < boardWidth; i++)
         {
@@ -59,10 +71,13 @@ public class GameSceneDirector : MonoBehaviour
                 float x = i - boardWidth / 2;
                 float y = j - boardWidth / 2;
                 Vector3 pos = new Vector3(x, 0, y);
+                //タイルのインデックス
+                Vector2Int idx = new Vector2Int(i,j);//2回以上使うため
                 // タイルの生成
                 GameObject tile = Instantiate(PrefabTile, pos, Quaternion.identity);
                 //tile.name = $"Tile_{j}_{i}";
                 //tile.transform.SetParent(this.transform);
+                tiles.Add(idx,tile);
 
                 //ユニットの作成
                 int type = boardSetting[i,j]%10;
@@ -79,7 +94,12 @@ public class GameSceneDirector : MonoBehaviour
                 unit.AddComponent<BoxCollider>();
 
                 //TODO ユニットの初期化
-                
+                // UnitController コンポーネントを unit オブジェクトに追加し、unitctrl 変数にその参照を格納します。
+                UnitController unitctrl = unit.AddComponent<UnitController>();
+
+                unitctrl.Init(player,type,tile,idx);
+                //ユニットデータセット
+                units[i,j]=unitctrl;
             }
         }
     }
